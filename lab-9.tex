@@ -1,0 +1,115 @@
+\documentclass[10pt]{article}
+
+% Lines beginning with the percent sign are comments
+% This file has been commented to help you understand more about LaTeX
+
+% DO NOT EDIT THE LINES BETWEEN THE TWO LONG HORIZONTAL LINES
+
+%---------------------------------------------------------------------------------------------------------
+
+% Packages add extra functionality.
+\usepackage{times,graphicx,epstopdf,fancyhdr,amsfonts,amsthm,amsmath,algorithm,algorithmic,xspace,hyperref}
+\usepackage[left=1in,top=1in,right=1in,bottom=1in]{geometry}
+\usepackage{sect sty}	%For centering section headings
+\usepackage{enumerate}	%Allows more labeling options for enumerate environments 
+\usepackage{epsfig}
+\usepackage[space]{grffile}
+\usepackage{booktabs}
+\usepackage{forest}
+\usepackage{array}
+\usepackage{float}
+\usepackage{listings}% http://ctan.org/pkg/listings
+\usepackage{rotating}
+\usepackage{easytable}
+\usepackage{makecell}
+\lstset{
+  basicstyle=\ttfamily,
+  mathescape
+}
+
+% This will set LaTeX to look for figures in the same directory as the .tex file
+\graphicspath{.} % The dot means current directory.
+
+\pagestyle{fancy}
+
+\lhead{Final Project}
+\rhead{\today}
+\lfoot{CSCI 334: Principles of Programming Languages}
+\cfoot{\thepage}
+\rfoot{Fall 2023}
+
+% Some commands for changing header and footer format
+\renewcommand{\headrulewidth}{0.4pt}
+\renewcommand{\headwidth}{\textwidth}
+\renewcommand{\footrulewidth}{0.4pt}
+
+% These let you use common environments
+\newtheorem{claim}{Claim}
+\newtheorem{definition}{Definition}
+\newtheorem{theorem}{Theorem}
+\newtheorem{lemma}{Lemma}
+\newtheorem{observation}{Observation}
+\newtheorem{question}{Question}
+
+\setlength{\parindent}{0cm}
+
+
+%---------------------------------------------------------------------------------------------------------
+
+% DON'T CHANGE ANYTHING ABOVE HERE
+
+% Edit below as instructed
+
+\begin{document}
+
+\section*{Minimal Working Interpreter}
+Our minimally working interpreter for our final project that draws 2D fantasy map lands, parses definitions of components. For this interpreter we have only defined circles and points as our primitives, and a component can either be a circle or a new shape they can choose in future versions of this code. Users can then define a variable with the primitive components name and circle, and then scale it putting dimensions around the components. 
+After parsing the program, our interpreter evaluates the definitions recursively building an SVG string for each component in a definition then concatenating the SVG strings. Finally, the interpreter draws the last SVG string, after evaluating the last definition. 
+
+\begin{verbatim}
+Example Programs:
+Example 1:
+    TwoCircles 50x50 is:
+        circle  point=(5,5) radius=5
+        circle  point=(5,5) radius=3
+        
+Example 2:
+    TwoCircles 50x50 is:
+        circle  point=(5,5) radius=5
+        circle  point=(5,5) radius=3
+    ThreeCircles 100x100 is:
+        TwoCircles
+        circle point=(10,10) radius=4
+\end{verbatim}
+\section*{Minimal Formal Grammar}
+
+\begin{lstlisting}
+<point> ::= <int> <int>
+
+<circle> ::= <point> <int>
+
+<dims> ::= <int> <int>
+
+<def> ::= <name> <dims> <component>$^+$
+
+<component> ::= <name> | <circle>
+
+<grammar> ::= <def>$^+$
+\end{lstlisting}
+\vspace{200pt}
+\section*{Minimal Semantics}
+
+\begin{center}
+\begin{TAB}{|c|c|c|c|c|}{|c|c|c|c|c|c|c|c|}% (rows,min,max)[tabcolsep]{columns}{rows}
+  \textbf{Syntax} & \textbf{Abstract Syntax} & \textbf{Type} & \textbf{Prec. \& Assoc} & \textbf{Meaning}\\
+  point=(x,y) & Point = {x: int; y: int} & Record: {int;int} & n/a &  \makecell{Represents the coordinates of a point\\on a grid(canvas) using \\the primitive int}\\
+  circle  point=(5,5) radius=5 & Circle of Point * int & Point*int & 1/left & \makecell{Circle contains its origin (point)\\ and radius which is then drawn\\ in SVG. Both the radius\\ and the elements of Point must \\evaluate to an integer.} \\
+  name & Name of string & string & n/a & \makecell{Represents the name of the variable\\ used in defining a new component}\\
+  intxint & \makecell{Dims =\\{w:int; h:int}}& record of integers& n/a& \makecell{Dims for eg. 50x50,\\ evaluates two integers as\\ a record of integers as\\ width and height.\\ Dims falls oon the definition line\\ for a new variable that\\ scales the shape or canvas.}\\
+  \makecell{definition dims is: \\circle  point=(5,5) radius=5} & \makecell{Component = \\name \\or circle} & Component & n/a & \makecell{Component in this example circle,\\ either evaluates a name\\ as string of a new form\\ or the primitive type circle.}\\
+  \makecell{TwoCircles 50x50 is:\\  components} & \makecell{Definition of \\{name: string;\\ dims: Dims;\\components: Component list}} & Definition & n/a & \makecell{This type defines a new variable\\ in this case TwoCircles,\\ that evaluates the variable\\ name(combining form) as a string,\\ the scale of the dimensions Dims\\ as a record of two integers\\ and the list of\\ components with\\ the primitive shapes like circle.}\\
+  \makecell{definition:\\   components\\definition:\\   components} & grammar & Definition List & top to bottom & \makecell{The definitions get parsed\\ top to bottom,\\ and using a dictionary,\\ it builds SVG strings,\\ concatenating each component,\\ to each definition.\\ At the end of the definition list,\\ it then draws the last\\ SVG string which is a compilation of\\ every definition's SVG\\ string}\\
+\end{TAB}
+\end{center}
+
+\end{document}
